@@ -12,7 +12,7 @@ export function getByProps(...props) {
     return findByProps(...props);
 }
 
-export function getByDisplayName(displayName, options) {
+export function getByDisplayName(displayName, options = {default: true}) {
     return findByDisplayName(displayName, options);
 }
 

@@ -12,8 +12,8 @@ export function getByProps(...props) {
     return Webpack.getByProps(...props);
 }
 
-export function getByDisplayName(displayName, options) {
-    let filter = m => m.default.displayName === displayName;
+export function getByDisplayName(displayName, options = {default: true}) {
+    let filter = m => m?.default?.displayName === displayName;
     if (options.default) {
         filter = m => m.displayName === displayName;
     }

@@ -12,7 +12,7 @@ const aliases = new Proxy({
     m: "mods",
     o: "output",
     h: "help",
-    w: false
+    w: "watch"
 }, {
     get(target, key) {
         return target[key] ?? key;
@@ -43,7 +43,7 @@ if (!Reflect.has(argv, "input")) {
     process.exit(0);
 }
 
-const {rollup} = require("rollup");
+const {watch} = require("rollup");
 const {default: esBuild} = require("rollup-plugin-esbuild");
 const {nodeResolve} = require("@rollup/plugin-node-resolve");
 const alias = require("@rollup/plugin-alias");
@@ -64,6 +64,28 @@ function matchAll({regex, input, parent = false, flat = false}) {
 
 function makeBdMeta(manifest) {
     return Object.keys(manifest).reduce((str, key) => str + ` * @${key} ${manifest[key]}\n`, "/**\n") + " */\n\n";
+}
+
+function makeStylesheet(content, filename) {
+return `export default {
+    content: ${JSON.stringify(content)},
+    _element: null,
+    load() {
+        if (this._element) return;
+
+        this._element = Object.assign(document.createElement("style"), {
+            textContent: this.content,
+            id: manifest.id + "-" + "${filename}"
+        });
+
+        document.head.appendChild(this._element);
+    },
+    unload() {
+        this._element?.remove();
+        this._element = null;
+    }
+}
+`;
 }
 
 function getReactInstance(mod) {
@@ -110,28 +132,27 @@ const bundlers = {
 
 (async () => {
     const pluginPath = path.isAbsolute(argv.input) ? argv.input : path.resolve(process.cwd(), argv.input);
-    const manifest = require(path.resolve(pluginPath, "manifest.json"));
     
     if (!fs.existsSync(argv.output)) {
         fs.mkdirSync(argv.output, {recursive: true});
     }
-
+    
     if (!path.isAbsolute(argv.output)) {
         argv.output = path.resolve(process.cwd(), argv.output);
     }
     
-    console.time("Done in");
     for (const mod of Array.isArray(argv.mods) ? argv.mods : [argv.mods]) {
         const globals = new Set([mod.toUpperCase()]);
-        console.time(`Build for ${mod} in`);
 
         const resolver = nodeResolve({
-            extensions: [".ts", ".tsx", ".js"]
+            extensions: [".ts", ".tsx", ".js", ".css", ".scss"]
         });
 
-        await rollup({
+        const watcher = watch({
             input: path.resolve(pluginPath, "index"),
-            watch: argv.watch,
+            watch: {
+                skipWrite: true
+            },
             output: {
                 format: "commonjs",
                 exports: "auto"
@@ -140,12 +161,28 @@ const bundlers = {
             plugins: [
                 alias({
                     entries: [
-                        {find: "@patcher", replacement: path.resolve(__dirname, "./core/patcher/index.ts")},   
+                        {find: "@patcher", replacement: path.resolve(__dirname, "./core/patcher/index.ts")},
                         {find: "@webpack", replacement: path.resolve(__dirname, "./core/webpack/index.ts")},
                         {find: "@structs", replacement: path.resolve(__dirname, "./core/structs/index.ts")}
                     ],
                     customResolver: resolver
                 }),
+                (extensions => ({
+                    name: "Style Loader",
+                    async load(id) {
+                        const ext = path.extname(id);
+                        if (!extensions.has(ext)) return null;
+                        let content;
+                        
+                        if (ext === ".scss") {
+                            content = (await require("sass").compileAsync(id)).css;
+                        } else {
+                            content = await fs.promises.readFile(id, "utf8");
+                        }
+
+                        return makeStylesheet(content, path.basename(id));
+                    }
+                }))(new Set([".css", ".scss"])),
                 {
                     name: "CC",
                     transform(code) {
@@ -186,17 +223,36 @@ const bundlers = {
                     }
                 }
             ]
-        }).then(async bundle => {
-            let {output: [{code}]} = await bundle.generate({format: "cjs", exports: "auto"});
-            
-            code = code.replace("'use strict';\n", "");
-            code =  `"use strict";\nconst manifest = Object.freeze(${JSON.stringify(manifest, null, 2)});\n` + code;
+        });
 
-            await bundlers[mod](code, manifest);
-        }, console.error);
+        watcher.on("event", async event => {
+            switch (event.code) {
+                case "BUNDLE_START": {
+                    if (argv.watch) console.clear();
+                    console.time(`Build for ${mod} in`);
+                } break;
 
-        console.timeEnd(`Build for ${mod} in`);
+                case "BUNDLE_END": {
+                    const manifest = JSON.parse(await fs.promises.readFile(path.resolve(pluginPath, "manifest.json"), "utf8"));
+                    const bundle = event.result;
+
+                    let {output: [{code}]} = await bundle.generate({format: "cjs", exports: "auto"});
+                    
+                    code = code.replace("'use strict';\n", "");
+                    code = `"use strict";\nconst manifest = Object.freeze(${JSON.stringify(manifest, null, 2)});\n` + code;
+
+                    await bundlers[mod](code, manifest);
+
+                    console.timeEnd(`Build for ${mod} in`);
+
+                    event.result.close();
+                    if (!argv.watch) watcher.close();
+                } break;
+
+                case "ERROR": {
+                    console.error(event.error);
+                } break;
+            }
+        });
     }
-
-    console.timeEnd("Done in");
 })();
