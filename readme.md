@@ -14,7 +14,7 @@ cd Builder && npm install # or pnpm
 
 # Usage
 ```bash
-pnpm builder -i ./path/to/my/plugin
+node builder -i ./path/to/my/plugin
 ```
 
 # Plugin Structure

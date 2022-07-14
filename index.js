@@ -34,7 +34,7 @@ const argv = Object.fromEntries(defaults.concat(
 ));
 
 if ("help" in argv) {
-    console.log(fs.readFileSync("./help.txt", "utf8"));
+    console.log(fs.readFileSync(path.resolve(__dirname, "help.txt"), "utf8"));
     process.exit(1);
 }
 
@@ -140,9 +140,9 @@ const bundlers = {
             plugins: [
                 alias({
                     entries: [
-                        {find: "@patcher", replacement: path.resolve("./core/patcher/index.ts")},   
-                        {find: "@webpack", replacement: path.resolve("./core/webpack/index.ts")},
-                        {find: "@structs", replacement: path.resolve("./core/structs/index.ts")}
+                        {find: "@patcher", replacement: path.resolve(__dirname, "./core/patcher/index.ts")},   
+                        {find: "@webpack", replacement: path.resolve(__dirname, "./core/webpack/index.ts")},
+                        {find: "@structs", replacement: path.resolve(__dirname, "./core/structs/index.ts")}
                     ],
                     customResolver: resolver
                 }),
