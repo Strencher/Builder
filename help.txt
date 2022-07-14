@@ -1,0 +1,6 @@
+Available Commands:
+    -h, --help   - Shows this message.
+    -i, --input  - Input plugin to be build.
+    -o, --output - Output path for compiled plugin(s).
+    -m, --mods   - Mods to build for. Supported: betterdiscord,unbound,powercord,astra.
+    -w, --watch  - Start the watcher.
