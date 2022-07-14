@@ -1,4 +1,4 @@
-const PCPlugin = powercord.entities.Plugin;
+const PCPlugin = (window as any).require("powercord/entities").Plugin;
 
 export class Plugin extends PCPlugin {
     private _shouldUnregisterSettings = false;

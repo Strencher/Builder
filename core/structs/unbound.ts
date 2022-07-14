@@ -1,4 +1,4 @@
-const UPlugin = unbound.structures.Plugin;
+const UPlugin = (window as any).require("@structures/plugin");
 
 export class Plugin extends UPlugin {
     private _settings = null;
