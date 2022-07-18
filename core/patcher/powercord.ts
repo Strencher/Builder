@@ -1,4 +1,4 @@
-const {injector} = powercord;
+const injector = __NON_ROLLUP_REQUIRE__("powercord/injector");
 const patches = new Set<Function>;
 const id = (id => () => id++)(0);
 

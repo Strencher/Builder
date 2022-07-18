@@ -1,6 +1,6 @@
 function getReactInstance(mod) {
     switch (mod) {
-        case "powercord": return "powercord.webpack.React";
+        case "powercord": return "require('powercord/webpack').React";
         case "astra": return "Astra.Webpack.React";
         case "unbound": return "unbound.webpack.React";
         case "betterdiscord": return "BdApi.React";
