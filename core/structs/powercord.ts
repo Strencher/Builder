@@ -1,4 +1,4 @@
-const PCPlugin = (window as any).require("powercord/entities").Plugin;
+const PCPlugin = __NON_ROLLUP_REQUIRE__("powercord/entities").Plugin;
 
 export class Plugin extends PCPlugin {
     private _shouldUnregisterSettings = false;
@@ -7,13 +7,13 @@ export class Plugin extends PCPlugin {
     onStart() {}
     onStop() {}
 
-    start() {
+    startPlugin() {
         if (typeof this.onStart === "function") {
             this.onStart();
         }
     }
 
-    stop() {
+    pluginWillUnload() {
         if (typeof this.onStop === "function") {
             this.onStop();
         }

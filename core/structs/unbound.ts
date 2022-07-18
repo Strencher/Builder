@@ -1,4 +1,4 @@
-const UPlugin = (window as any).require("@structures/plugin");
+const UPlugin = __NON_ROLLUP_REQUIRE__("@structures/plugin");
 
 export class Plugin extends UPlugin {
     private _settings = null;

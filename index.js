@@ -47,59 +47,12 @@ const {watch} = require("rollup");
 const {default: esBuild} = require("rollup-plugin-esbuild");
 const {nodeResolve} = require("@rollup/plugin-node-resolve");
 const alias = require("@rollup/plugin-alias");
-
-function matchAll({regex, input, parent = false, flat = false}) {
-    let matches, output = [], lastIndex = 0;
-    while (matches = regex.exec(input.slice(lastIndex))) {
-        if (!regex.global) lastIndex += matches.index + matches[0].length;
-        if (parent) output.push(matches);
-        else {
-            const [, ...match] = matches;
-
-            output.push(...(flat ? match : [match]));
-        }
-    }
-    return output;
-}
+const replace = require("@rollup/plugin-replace");
+const {Style, jscc, react} = require("./loaders");
 
 function makeBdMeta(manifest) {
     return Object.keys(manifest).reduce((str, key) => str + ` * @${key} ${manifest[key]}\n`, "/**\n") + " */\n\n";
 }
-
-function makeStylesheet(content, filename) {
-return `export default {
-    content: ${JSON.stringify(content)},
-    _element: null,
-    load() {
-        if (this._element) return;
-
-        this._element = Object.assign(document.createElement("style"), {
-            textContent: this.content,
-            id: manifest.id + "-" + "${filename}"
-        });
-
-        document.head.appendChild(this._element);
-    },
-    unload() {
-        this._element?.remove();
-        this._element = null;
-    }
-}
-`;
-}
-
-function getReactInstance(mod) {
-    switch (mod) {
-        case "powercord": return "powercord.webpack.React";
-        case "astra": return "Astra.Webpack.React";
-        case "unbound": return "unbound.webpack.React";
-        case "betterdiscord": return "BdApi.React";
-
-        default: {
-            throw new Error(`Unknown mod ${mod}`);
-        };
-    }
-};
 
 const bundlers = {
     async betterdiscord(code, manifest) {
@@ -166,65 +119,31 @@ const bundlers = {
                     entries: [
                         {find: "@patcher", replacement: path.resolve(__dirname, "./core/patcher/index.ts")},
                         {find: "@webpack", replacement: path.resolve(__dirname, "./core/webpack/index.ts")},
+                        {find: "@settings", replacement: path.resolve(__dirname, "./core/settings/index.ts")},
                         {find: "@structs", replacement: path.resolve(__dirname, "./core/structs/index.ts")}
                     ],
                     customResolver: resolver
                 }),
-                (extensions => ({
-                    name: "Style Loader",
-                    async load(id) {
-                        const ext = path.extname(id);
-                        if (!extensions.has(ext)) return null;
-                        let content;
-                        
-                        if (ext === ".scss") {
-                            content = (await require("sass").compileAsync(id)).css;
-                        } else {
-                            content = await fs.promises.readFile(id, "utf8");
-                        }
-
-                        return makeStylesheet(content, path.basename(id));
-                    }
-                }))(new Set([".css", ".scss"])),
-                {
-                    name: "CC",
-                    transform(code) {
-                        const matches = matchAll({
-                            regex: /[+]?\/\*#ifdef (\S+)\*\/[+]?((?!\/\*endif)[\S\s]+?)[+]?\/\*#endif\*\//ig,
-                            input: code,
-                            parent: true
-                        });
-                        
-                        if (!matches.length) return;
-
-                        for (const match of matches) {
-                            const [heap, variable, content] = match;
-                            code = code.replace(heap, globals.has(variable) ? content : "");
-                            // code = sliceString(code, match.index, heap.length, globals.has(variable) ? content : "");
-                            // console.log(mod, "\n", code, "\n", mod);
-                        }
-                        
-                        return code.trim();
-                    }
-                },
+                Style({
+                    extensions: new Set([".css", ".scss"])
+                }),
+                jscc({
+                    globals: globals
+                }),
                 esBuild({
                     target: "esNext",
                     jsx: "transform"
                 }),
-                resolver,
-                {
-                    name: "react",
-                    resolveId(id) {
-                        if (id === "react") return id;
-
-                        return null;
-                    },
-                    load(id) {
-                        if (id === "react") return "export default " + getReactInstance(mod);
-
-                        return null;
+                react({
+                    mod: mod
+                }),
+                replace({
+                    preventAssignment: true,
+                    values: {
+                        "__NON_ROLLUP_REQUIRE__": "require"
                     }
-                }
+                }),
+                resolver
             ]
         });
 

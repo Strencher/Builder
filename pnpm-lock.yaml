@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@rollup/plugin-alias': ^3.1.9
   '@rollup/plugin-node-resolve': ^13.3.0
+  '@rollup/plugin-replace': ^4.0.0
   '@types/react': ^18.0.15
   esbuild: ^0.14.49
   rollup: ^2.76.0
@@ -12,6 +13,7 @@ specifiers:
 dependencies:
   '@rollup/plugin-alias': 3.1.9_rollup@2.76.0
   '@rollup/plugin-node-resolve': 13.3.0_rollup@2.76.0
+  '@rollup/plugin-replace': 4.0.0_rollup@2.76.0
   esbuild: 0.14.49
   rollup: 2.76.0
   rollup-plugin-esbuild: 4.9.1_5yu4n7km4rpkzsnyi4ysdr3swq
@@ -44,6 +46,16 @@ packages:
       is-builtin-module: 3.1.0
       is-module: 1.0.0
       resolve: 1.22.1
+      rollup: 2.76.0
+    dev: false
+
+  /@rollup/plugin-replace/4.0.0_rollup@2.76.0:
+    resolution: {integrity: sha512-+rumQFiaNac9y64OHtkHGmdjm7us9bo1PlbgQfdihQtuNxzjpaB064HbRnewUOggLQxVCCyINfStkgmBeQpv1g==}
+    peerDependencies:
+      rollup: ^1.20.0 || ^2.0.0
+    dependencies:
+      '@rollup/pluginutils': 3.1.0_rollup@2.76.0
+      magic-string: 0.25.9
       rollup: 2.76.0
     dev: false
 
@@ -465,6 +477,12 @@ packages:
     resolution: {integrity: sha512-DRf0QjnNeCUds3xTjKlQQ3DpJD51GvDjJfnxUVWg6PZTo2otSm+slzNAxU/35hF8/oJIKoG9slq30JYOsF2azg==}
     dev: false
 
+  /magic-string/0.25.9:
+    resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
+    dependencies:
+      sourcemap-codec: 1.4.8
+    dev: false
+
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
     dev: false
@@ -543,6 +561,10 @@ packages:
   /source-map-js/1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
+    dev: false
+
+  /sourcemap-codec/1.4.8:
+    resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
     dev: false
 
   /supports-preserve-symlinks-flag/1.0.0:
