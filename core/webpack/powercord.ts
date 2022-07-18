@@ -1,4 +1,4 @@
-const {getAllModules, getModule} = powercord.webpack;
+const {getAllModules, getModule} = __NON_ROLLUP_REQUIRE__("powercord/webpack");
 
 export function find(filter) {
     return getModule(filter, false);
