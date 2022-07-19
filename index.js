@@ -80,6 +80,8 @@ const bundlers = {
     async powercord(code, manifest) {
         const pluginPath = path.resolve(argv.output, "powercord", manifest.id);
 
+        manifest.license ??= "Unlicensed";
+
         if (!fs.existsSync(pluginPath)) await fs.promises.mkdir(pluginPath, {recursive: true});
         await fs.promises.writeFile(path.resolve(pluginPath, "index.js"), code, "utf8");
         await fs.promises.writeFile(path.resolve(pluginPath, "manifest.json"), JSON.stringify(manifest, null, 4), "utf8");
