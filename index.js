@@ -61,7 +61,7 @@ const bundlers = {
         await fs.promises.writeFile(path.resolve(argv.output, `${manifest.id}.plugin.js`), code, "utf8");
     },
     async unbound(code, manifest) {
-        const pluginPath = path.resolve(argv.output, "unbound", manifest.id);
+        const pluginPath = path.resolve(argv.output, "unbound");
 
         manifest.authors ??= [manifest.author];
         delete manifest.author;
@@ -71,14 +71,14 @@ const bundlers = {
         await fs.promises.writeFile(path.resolve(pluginPath, "manifest.json"), JSON.stringify(manifest, null, 4), "utf8");
     },
     async astra(code, manifest) {
-        const pluginPath = path.resolve(argv.output, "astra", manifest.id);
+        const pluginPath = path.resolve(argv.output, "astra");
 
         if (!fs.existsSync(pluginPath)) await fs.promises.mkdir(pluginPath, {recursive: true});
         await fs.promises.writeFile(path.resolve(pluginPath, "index.js"), code, "utf8");
         await fs.promises.writeFile(path.resolve(pluginPath, "manifest.json"), JSON.stringify(manifest, null, 4), "utf8");
     },
     async powercord(code, manifest) {
-        const pluginPath = path.resolve(argv.output, "powercord", manifest.id);
+        const pluginPath = path.resolve(argv.output, "powercord");
 
         manifest.license ??= "Unlicensed";
 
@@ -127,7 +127,8 @@ const bundlers = {
                     customResolver: resolver
                 }),
                 Style({
-                    extensions: new Set([".css", ".scss"])
+                    extensions: new Set([".css", ".scss"]),
+                    mod
                 }),
                 jscc({
                     globals: globals
@@ -158,7 +159,7 @@ const bundlers = {
                 } break;
 
                 case "BUNDLE_END": {
-                    Style.clearPrevious();
+                    Style.clearPrevious(mod);
 
                     const manifest = JSON.parse(await fs.promises.readFile(path.resolve(pluginPath, "manifest.json"), "utf8"));
                     const bundle = event.result;

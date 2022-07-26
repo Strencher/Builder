@@ -1,12 +1,12 @@
 const {promises: fs} = require("fs");
 const path = require("path");
 
-let previousId = null;
+let previousId = {};
 
-function makeStylesheet(content, filename, previousId) {
-if (previousId) {
+function makeStylesheet(content, filename, previousId, mod) {
+if (previousId[mod]) {
 return `
-import Loader from ${JSON.stringify(previousId)};
+import Loader from ${JSON.stringify(previousId[mod])};
 
 Loader.sheets.push("/* ${filename} */", ${JSON.stringify(content)});
 `;
@@ -27,15 +27,12 @@ return `export default {
     unload() {
         this._element?.remove();
         this._element = null;
-    }/*,
-    concat(...styles) {
-        this.content += styles.reduce((final, style) => final + "\\n" + style.content, "");
-    }*/
+    }
 }
 `;
 }
 
-module.exports = function Style({extensions}) {
+module.exports = function Style({extensions, mod}) {
     return {
         name: "Style Loader",
         async load(id) {
@@ -49,13 +46,13 @@ module.exports = function Style({extensions}) {
                 content = await fs.readFile(id, "utf8");
             }
 
-            const code = makeStylesheet(content, path.basename(id), previousId);
-            previousId ??= id;
+            const code = makeStylesheet(content, path.basename(id), previousId, mod);
+            previousId[mod] ??= id;
             return code;
         }
     };
 }
 
-module.exports.clearPrevious = () => {
-    previousId = null;
+module.exports.clearPrevious = (mod) => {
+    previousId[mod] = null;
 };
