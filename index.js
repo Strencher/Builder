@@ -48,7 +48,7 @@ const {default: esBuild} = require("rollup-plugin-esbuild");
 const {nodeResolve} = require("@rollup/plugin-node-resolve");
 const alias = require("@rollup/plugin-alias");
 const replace = require("@rollup/plugin-replace");
-const {Style, jscc, react} = require("./loaders");
+const {Style, jscc, react, regions} = require("./loaders");
 
 function makeBdMeta(manifest) {
     return Object.keys(manifest).reduce((str, key) => str + ` * @${key} ${manifest[key]}\n`, "/**\n") + " */\n\n";
@@ -56,7 +56,7 @@ function makeBdMeta(manifest) {
 
 const bundlers = {
     async betterdiscord(code, manifest) {
-        code = makeBdMeta(manifest) + code;
+        code = makeBdMeta({...manifest, name: manifest.name.replaceAll(" ", "")}) + code;
 
         await fs.promises.writeFile(path.resolve(argv.output, `${manifest.id}.plugin.js`), code, "utf8");
     },
@@ -136,6 +136,7 @@ const bundlers = {
                     target: "esNext",
                     jsx: "transform"
                 }),
+                regions(),
                 react({
                     mod: mod
                 }),
@@ -157,13 +158,15 @@ const bundlers = {
                 } break;
 
                 case "BUNDLE_END": {
+                    Style.clearPrevious();
+
                     const manifest = JSON.parse(await fs.promises.readFile(path.resolve(pluginPath, "manifest.json"), "utf8"));
                     const bundle = event.result;
 
                     let {output: [{code}]} = await bundle.generate({format: "cjs", exports: "auto"});
                     
                     code = code.replace("'use strict';\n", "");
-                    code = `"use strict";\nconst manifest = Object.freeze(${JSON.stringify(manifest, null, 2)});\n` + code;
+                    code = `"use strict";\n// #region manifest.json\nconst manifest = Object.freeze(${JSON.stringify(manifest, null, 2)});\n// #endregion manifest.json\n` + code;
 
                     await bundlers[mod](code, manifest);
 

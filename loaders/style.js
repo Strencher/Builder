@@ -1,16 +1,25 @@
 const {promises: fs} = require("fs");
 const path = require("path");
 
-function makeStylesheet(content, filename) {
+let previousId = null;
+
+function makeStylesheet(content, filename, previousId) {
+if (previousId) {
+return `
+import Loader from ${JSON.stringify(previousId)};
+
+Loader.sheets.push("/* ${filename} */", ${JSON.stringify(content)});
+`;
+}
 return `export default {
-    content: ${JSON.stringify(content)},
+    sheets: ["/* ${filename} */", ${JSON.stringify(content)}],
     _element: null,
     load() {
         if (this._element) return;
 
         this._element = Object.assign(document.createElement("style"), {
-            textContent: this.content,
-            id: manifest.id + "-" + "${filename}"
+            textContent: this.sheets.join("\\n"),
+            id: manifest.id
         });
 
         document.head.appendChild(this._element);
@@ -18,10 +27,10 @@ return `export default {
     unload() {
         this._element?.remove();
         this._element = null;
-    },
+    }/*,
     concat(...styles) {
         this.content += styles.reduce((final, style) => final + "\\n" + style.content, "");
-    }
+    }*/
 }
 `;
 }
@@ -40,7 +49,13 @@ module.exports = function Style({extensions}) {
                 content = await fs.readFile(id, "utf8");
             }
 
-            return makeStylesheet(content, path.basename(id));
+            const code = makeStylesheet(content, path.basename(id), previousId);
+            previousId ??= id;
+            return code;
         }
     };
 }
+
+module.exports.clearPrevious = () => {
+    previousId = null;
+};
