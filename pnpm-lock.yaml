@@ -5,6 +5,7 @@ specifiers:
   '@rollup/plugin-node-resolve': ^13.3.0
   '@rollup/plugin-replace': ^4.0.0
   '@types/react': ^18.0.15
+  cssom: ^0.5.0
   esbuild: ^0.14.49
   rollup: ^2.76.0
   rollup-plugin-esbuild: ^4.9.1
@@ -14,6 +15,7 @@ dependencies:
   '@rollup/plugin-alias': 3.1.9_rollup@2.76.0
   '@rollup/plugin-node-resolve': 13.3.0_rollup@2.76.0
   '@rollup/plugin-replace': 4.0.0_rollup@2.76.0
+  cssom: 0.5.0
   esbuild: 0.14.49
   rollup: 2.76.0
   rollup-plugin-esbuild: 4.9.1_5yu4n7km4rpkzsnyi4ysdr3swq
@@ -147,6 +149,10 @@ packages:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.2
+    dev: false
+
+  /cssom/0.5.0:
+    resolution: {integrity: sha512-iKuQcq+NdHqlAcwUY0o/HL69XQrUaQdMjmStJ8JFmUaiiQErlhrmuigkg/CU4E2J0IyUKUrMAgl36TvN67MqTw==}
     dev: false
 
   /csstype/3.1.0:

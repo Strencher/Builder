@@ -12,6 +12,10 @@ export function getByProps(...props) {
     return getModule(props, false);
 }
 
+export function getStore(name) {
+    return getModule(m => m?._dispatchToken && m.getName() === name, false);
+}
+
 export function getByDisplayName(displayName, options = {default: true}) {
     let filter = m => m?.default?.displayName === displayName;
 

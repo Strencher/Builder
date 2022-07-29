@@ -122,13 +122,13 @@ const bundlers = {
                         {find: "@patcher", replacement: path.resolve(__dirname, "./core/patcher/index.ts")},
                         {find: "@webpack", replacement: path.resolve(__dirname, "./core/webpack/index.ts")},
                         {find: "@settings", replacement: path.resolve(__dirname, "./core/settings/index.ts")},
-                        {find: "@structs", replacement: path.resolve(__dirname, "./core/structs/index.ts")}
+                        {find: "@structs", replacement: path.resolve(__dirname, "./core/structs/index.ts")},
+                        {find: "@discord", replacement: path.resolve(__dirname, "./core/modules")},
                     ],
                     customResolver: resolver
                 }),
                 Style({
-                    extensions: new Set([".css", ".scss"]),
-                    mod
+                    extensions: new Set([".css", ".scss"])
                 }),
                 jscc({
                     globals: globals
@@ -159,8 +159,6 @@ const bundlers = {
                 } break;
 
                 case "BUNDLE_END": {
-                    Style.clearPrevious(mod);
-
                     const manifest = JSON.parse(await fs.promises.readFile(path.resolve(pluginPath, "manifest.json"), "utf8"));
                     const bundle = event.result;
 
@@ -179,6 +177,7 @@ const bundlers = {
 
                 case "ERROR": {
                     console.error(event.error);
+                    if (!argv.watch) watcher.close();
                 } break;
             }
         });

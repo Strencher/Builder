@@ -10,6 +10,10 @@ export function getByProps(...props) {
     return BdApi.findModuleByProps(...props);
 }
 
+export function getStore(name) {
+    return BdApi.findModule(m => m?._dispatchToken && m.getName() === name);
+}
+
 export function getByDisplayName(displayName, options = {default: true}) {
     let filter = m => m?.default?.displayName === displayName;
     if (options.default) {

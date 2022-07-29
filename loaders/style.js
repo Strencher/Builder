@@ -1,18 +1,11 @@
 const {promises: fs} = require("fs");
 const path = require("path");
+const cssom = require("cssom");
+const {matchAll, toCamelCase} = require("../utils");
 
-let previousId = {};
-
-function makeStylesheet(content, filename, previousId, mod) {
-if (previousId[mod]) {
-return `
-import Loader from ${JSON.stringify(previousId[mod])};
-
-Loader.sheets.push("/* ${filename} */", ${JSON.stringify(content)});
-`;
-}
-return `export default {
-    sheets: ["/* ${filename} */", ${JSON.stringify(content)}],
+const loader =
+`export default {
+    sheets: [],
     _element: null,
     load() {
         if (this._element) return;
@@ -28,31 +21,56 @@ return `export default {
         this._element?.remove();
         this._element = null;
     }
-}
+}`;
+
+function makeStylesheet(content, filename) {
+    const names = cssom.parse(content).cssRules.reduce((classNames, rule) => {
+        const matches = matchAll({
+            regex: /((?:\.|#)\S+)/g,
+            input: rule.selectorText,
+            flat: true
+        });
+
+        Object.assign(classNames,
+            Object.fromEntries(matches.map(m => (m = m.slice(1), [toCamelCase(m), m])))
+        );
+
+        return classNames;
+    }, {});
+
+return`
+import Styles from "styles";
+
+Styles.sheets.push("/* ${filename} */", 
+\`${content.replaceAll("`", "\\`")}\`);
+
+export default ${JSON.stringify(names, null)};
 `;
 }
 
-module.exports = function Style({extensions, mod}) {
+module.exports = function Style({extensions}) {
     return {
         name: "Style Loader",
+        resolveId(id) {
+            if (id === "styles") return id;
+
+            return null;
+        },
         async load(id) {
+            if (id === "styles") return loader;
+
             const ext = path.extname(id);
             if (!extensions.has(ext)) return null;
-            let content;
-            
-            if (ext === ".scss") {
-                content = (await require("sass").compileAsync(id)).css;
-            } else {
-                content = await fs.readFile(id, "utf8");
-            }
 
-            const code = makeStylesheet(content, path.basename(id), previousId, mod);
-            previousId[mod] ??= id;
-            return code;
+            let content; {
+                if (ext === ".scss") {
+                    content = (await require("sass").compileAsync(id)).css;
+                } else {
+                    content = await fs.readFile(id, "utf8");
+                }
+            };
+
+            return makeStylesheet(content, path.basename(id));
         }
     };
 }
-
-module.exports.clearPrevious = (mod) => {
-    previousId[mod] = null;
-};

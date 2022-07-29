@@ -1,16 +1,4 @@
-function matchAll({regex, input, parent = false, flat = false}) {
-    let matches, output = [], lastIndex = 0;
-    while (matches = regex.exec(input.slice(lastIndex))) {
-        if (!regex.global) lastIndex += matches.index + matches[0].length;
-        if (parent) output.push(matches);
-        else {
-            const [, ...match] = matches;
-
-            output.push(...(flat ? match : [match]));
-        }
-    }
-    return output;
-}
+const {matchAll} = require("../utils");
 
 module.exports = function jscc({globals}) {
     return {

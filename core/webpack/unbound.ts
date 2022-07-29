@@ -12,6 +12,10 @@ export function getByProps(...props) {
     return findByProps(...props);
 }
 
+export function getStore(name) {
+    return getModule(m => m?._dispatchToken && m.getName() === name);
+}
+
 export function getByDisplayName(displayName, options = {default: true}) {
     return findByDisplayName(displayName, options);
 }
