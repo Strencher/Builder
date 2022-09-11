@@ -27,4 +27,25 @@ function toCamelCase(str) {
     return out;
 }
 
-module.exports = {matchAll, upperFirst, toCamelCase};
+function matchChars(text, start, search) {
+    for (let i = 0; i < search.length; i++) {
+        const char = search[i];
+
+        if (char === "?") continue;
+        if (char !== text[start + i]) return false;
+    }
+
+    return true;
+};
+
+function range(start, end = start) {
+    const result = [];
+
+    for (let i = 0, first = start.charCodeAt(), stop = end.charCodeAt(); (first + i) <= stop; i++) {
+        result.push(String.fromCharCode(first + i));
+    }
+
+    return result;
+}
+
+module.exports = {matchAll, upperFirst, toCamelCase, matchChars, range};

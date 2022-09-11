@@ -3,6 +3,11 @@
 /// <reference path="./core/structs/structs.d.ts" />
 /// <reference path="./core/settings/settings.d.ts" />
 
+    
+declare const GLOBAL_ENV: {
+    CLIENT_MOD: "BETTERDISCORD" | "UNBOUND" | "ASTRA" | "POWERCORD"
+};
+
 declare module "styles" {
     const Style: {
         readonly _element?: HTMLStyleElement,

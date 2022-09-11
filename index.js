@@ -43,24 +43,33 @@ if (!Reflect.has(argv, "input")) {
     process.exit(0);
 }
 
+const pluginPath = path.isAbsolute(argv.input) ? argv.input : path.resolve(process.cwd(), argv.input);
 const {watch} = require("rollup");
 const {default: esBuild} = require("rollup-plugin-esbuild");
 const {nodeResolve} = require("@rollup/plugin-node-resolve");
 const alias = require("@rollup/plugin-alias");
 const replace = require("@rollup/plugin-replace");
-const {Style, jscc, react, regions} = require("./loaders");
+const {Style, jscc, react, regions, comptime} = require("./loaders");
 
 function makeBdMeta(manifest) {
     return Object.keys(manifest).reduce((str, key) => str + ` * @${key} ${manifest[key]}\n`, "/**\n") + " */\n\n";
 }
 
+function getManifest() {
+    return JSON.parse(fs.readFileSync(path.resolve(pluginPath, "manifest.json"), "utf8"));
+}
+
 const bundlers = {
     async betterdiscord(code, manifest) {
+        manifest = Object.assign({}, manifest);
+
+        delete manifest.changelog;
         code = makeBdMeta({...manifest, name: manifest.name.replaceAll(" ", "")}) + code;
 
         await fs.promises.writeFile(path.resolve(argv.output, `${manifest.id}.plugin.js`), code, "utf8");
     },
     async unbound(code, manifest) {
+        manifest = Object.assign({}, manifest);
         const pluginPath = path.resolve(argv.output, "unbound");
 
         manifest.authors ??= [manifest.author];
@@ -89,8 +98,6 @@ const bundlers = {
 };
 
 (async () => {
-    const pluginPath = path.isAbsolute(argv.input) ? argv.input : path.resolve(process.cwd(), argv.input);
-    
     if (!fs.existsSync(argv.output)) {
         fs.mkdirSync(argv.output, {recursive: true});
     }
@@ -100,8 +107,6 @@ const bundlers = {
     }
     
     for (const mod of Array.isArray(argv.mods) ? argv.mods : [argv.mods]) {
-        const globals = new Set([mod.toUpperCase()]);
-
         const resolver = nodeResolve({
             extensions: [".ts", ".tsx", ".js", ".css", ".scss"]
         });
@@ -117,6 +122,30 @@ const bundlers = {
             },
             external: require("module").builtinModules,
             plugins: [
+                replace({
+                    preventAssignment: true,
+                    values: {
+                        "__NON_ROLLUP_REQUIRE__": "require",
+                        "GLOBAL_ENV.CLIENT_MOD": `"${mod.toUpperCase()}"`
+                    }
+                }),
+                jscc({
+                    get globals() {
+                        const globals = new Set([mod.toUpperCase()]);
+                        const manifest = getManifest();
+
+                        if ("changelog" in manifest) {
+                            globals.add("HAS_CHANGELOG");
+                        }
+
+                        return globals;
+                    }
+                }),
+                comptime({
+                    args: [
+                        {name: "manifest", code: getManifest()}
+                    ]
+                }),
                 alias({
                     entries: [
                         {find: "@patcher", replacement: path.resolve(__dirname, "./core/patcher/index.ts")},
@@ -130,9 +159,6 @@ const bundlers = {
                 Style({
                     extensions: new Set([".css", ".scss"])
                 }),
-                jscc({
-                    globals: globals
-                }),
                 esBuild({
                     target: "esNext",
                     jsx: "transform"
@@ -140,12 +166,6 @@ const bundlers = {
                 regions(),
                 react({
                     mod: mod
-                }),
-                replace({
-                    preventAssignment: true,
-                    values: {
-                        "__NON_ROLLUP_REQUIRE__": "require"
-                    }
                 }),
                 resolver
             ]

@@ -3,4 +3,5 @@ module.exports = {
     Style: require("./style"),
     react: require("./react"),
     jscc: require("./jscc"),
+    comptime: require("./comptime")
 };

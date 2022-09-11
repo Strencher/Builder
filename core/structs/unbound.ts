@@ -1,4 +1,4 @@
-const UPlugin = __NON_ROLLUP_REQUIRE__("@structures/plugin");
+const UPlugin = __NON_ROLLUP_REQUIRE__("@entities/plugin");
 
 export class Plugin extends UPlugin {
     private _settings = null;
