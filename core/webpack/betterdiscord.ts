@@ -1,17 +1,17 @@
 export function find(filter) {
-    return BdApi.findModule(filter);
+    return BdApi.Webpack.getModule(filter);
 }
 
 export function findAll(filter) {
-    return BdApi.findAllModules(filter);
+    return BdApi.Webpack.getModule(filter, {first: false});
 }
 
 export function getByProps(...props) {
-    return BdApi.findModuleByProps(...props);
+    return BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps(...props));
 }
 
 export function getStore(name) {
-    return BdApi.findModule(m => m?._dispatchToken && m.getName() === name);
+    return BdApi.Webpack.getModule(m => m?._dispatchToken && m.getName() === name);
 }
 
 export function getByDisplayName(displayName, options = {default: true}) {
@@ -20,5 +20,5 @@ export function getByDisplayName(displayName, options = {default: true}) {
         filter = m => m.displayName === displayName;
     }
 
-    return BdApi.findModule(filter);
+    return BdApi.Webpack.getModule(filter);
 }
