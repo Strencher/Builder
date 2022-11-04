@@ -5,4 +5,6 @@ declare module "@structs" {
 
         registerSettings(settings: React.FC): void;
     }
+
+    export const TreeSearcher: typeof import("./treesearcher").default;
 }

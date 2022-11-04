@@ -50,6 +50,7 @@ const {nodeResolve} = require("@rollup/plugin-node-resolve");
 const alias = require("@rollup/plugin-alias");
 const replace = require("@rollup/plugin-replace");
 const {Style, jscc, react, regions, comptime} = require("./loaders");
+const {js: jsBeautify} = require("js-beautify");
 
 function makeBdMeta(manifest) {
     return Object.keys(manifest).reduce((str, key) => str + ` * @${key} ${manifest[key]}\n`, "/**\n") + " */\n\n";
@@ -184,8 +185,15 @@ const bundlers = {
 
                     let {output: [{code}]} = await bundle.generate({format: "cjs", exports: "auto"});
                     
+                    code = jsBeautify(code, {
+                        indent_size: 4,
+                        indent_char: " ",
+                        end_with_newline: true,
+                        brace_style: "preserve-inline"
+                    });
+
                     code = code.replace("'use strict';\n", "");
-                    code = `"use strict";\n// #region manifest.json\nconst manifest = Object.freeze(${JSON.stringify(manifest, null, 2)});\n// #endregion manifest.json\n` + code;
+                    code = `"use strict";\n// #region manifest.json\nconst manifest = Object.freeze(${JSON.stringify(manifest, null, 4)});\n// #endregion manifest.json\n` + code;
 
                     await bundlers[mod](code, manifest);
 

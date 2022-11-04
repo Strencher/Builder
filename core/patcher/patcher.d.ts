@@ -5,7 +5,6 @@ declare module "@patcher" {
     export function unpatchAll(): void;
 }
 
-declare const BdApi: any;
 declare const powercord: any;
 declare const Astra: any;
 declare const unbound: any;

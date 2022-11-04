@@ -7,5 +7,5 @@ declare module "@webpack" {
     export function findAll<T>(filter: (m: any) => boolean): T;
     export function find<T>(filter: (m: any) => boolean): T;
     export function getByProps<T>(...props: string[]): T;
-    export function getStore<T extends StoreNames>(name: T): Store<T>;
+    export function getStore(name: string): any;
 }

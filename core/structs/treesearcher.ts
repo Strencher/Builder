@@ -19,7 +19,7 @@ export default class TreeSearcher {
     _exceptionsHandler: ((error: any) => boolean | undefined) | null;
     defaultWalkable: string[];
 
-    constructor(target, type) {
+    constructor(target, type = "") {
         this._current = target;
         this._break = false;
 
